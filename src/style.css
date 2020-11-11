@@ -1,0 +1,51 @@
+body,
+html {
+	font-size: 16px;
+	line-height: 1.5em;
+	width: 100%;
+	background-color: #19181f !important;
+	margin: 0;
+	color: white !important;
+}
+
+h1 {
+	font-style: italic;
+	font-weight: bold;
+}
+
+.defaultButton {
+	border-color: white !important;
+}
+
+Button {
+	color: white !important;
+}
+
+Button:disabled {
+	color: grey !important;
+	border-color: grey !important;
+}
+
+.redButton {
+	border-color: crimson !important;
+}
+
+#insertButton {
+	border-color: green;
+}
+
+.MuiOutlinedInput-root .MuiInputBase-input {
+	color: white !important;
+}
+
+.MuiFormLabel-root.Mui-focused {
+	color: white !important;
+}
+
+.MuiFormLabel-root.Mui-disabled {
+	color: grey !important;
+}
+
+.MuiFormLabel-root {
+	color: white !important;
+}
