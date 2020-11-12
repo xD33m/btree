@@ -64,7 +64,7 @@ const muiTheme = createMuiTheme({
 // [X] bei speed 0 -> instant, evtl checkmark
 // [/] add Path-Color on Insert / Delete / Search
 // [X] fix previous input
-// [ ] improve lag
+// [X] improve lag
 // [ ] delete should remove the deleted number from "insertedKeys"
 // [ ] "delete all" button
 // [ ] add "enable Zoom"
@@ -88,7 +88,6 @@ class Home extends Component {
 			width: 0,
 			height: 0,
 
-			enteredNumbers: [],
 			insertedKeys: [],
 			keysToAdd: [],
 			hideKey: false,
@@ -123,6 +122,7 @@ class Home extends Component {
 	}
 
 	add = async (keys, insertAll) => {
+		if (keys.length === 1 && keys[0] === '') return;
 		const isAutomaticInsert = this.state.automaticInsertSwitch;
 		// manuelles einfügen, wenn auf "next" geklickt wird
 		if (!isAutomaticInsert && !insertAll) {
@@ -193,7 +193,8 @@ class Home extends Component {
 				bTree.remove(parseInt(key));
 				this.draw();
 				let insertedKeys = this.state.insertedKeys;
-				insertedKeys.pop();
+				const keyToDelIndex = insertedKeys.indexOf(parseInt(key));
+				insertedKeys.splice(keyToDelIndex, 1);
 				this.setState({ insertedKeys });
 				return sleep(this.state.insertSpeed);
 			});
@@ -211,8 +212,8 @@ class Home extends Component {
 		} else {
 			keys = latestInsert;
 		}
-
-		insertedKeys.pop();
+		const keyToDelIndex = insertedKeys.indexOfKey(parseInt(latestInsert));
+		insertedKeys.splice(keyToDelIndex, 1);
 		this.setState({ inputField: keys, insertedKeys });
 	}
 
@@ -236,7 +237,7 @@ class Home extends Component {
 	}
 
 	changeOrder = (e) => {
-		this.setState({ [e.target.name]: e.target.value, enteredNumbers: [] }); // reset [] if tree is reset
+		this.setState({ [e.target.name]: e.target.value, insertedKeys: [] }); // reset [] if tree is reset
 		if (Number(e.target.value)) {
 			this.initTree(parseInt(e.target.value));
 		}
@@ -283,6 +284,7 @@ class Home extends Component {
 								changeOrder={(order) => this.changeOrder(order)}
 								currentOrder={this.state.newOrder}
 								isAutomaticInsert={this.state.automaticInsertSwitch}
+								insertedKeys={this.state.insertedKeys}
 							/>
 						</Grid>
 						<Grid id="treeContainer" item>
