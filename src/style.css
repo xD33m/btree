@@ -49,3 +49,21 @@ Button:disabled {
 .MuiFormLabel-root {
 	color: white !important;
 }
+
+#upperControls {
+	padding: 10px;
+	margin: 5px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#treeContainer {
+	display: flex;
+	justify-content: center;
+	width: 1300px;
+	height: 500px;
+	border: solid white 1px;
+	background-color: #19181f;
+	position: relative;
+}

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { BTree } from '../js/btree';
-import { sleep, isNumber } from '../js/helpers';
+import { isNumber, sleep } from '../js/helpers';
 import { Graphviz } from 'graphviz-react';
 import {
 	Button,
@@ -8,35 +8,13 @@ import {
 	Grid,
 	Slider,
 	Switch,
-	TextField,
 	ThemeProvider,
 	Typography,
-	withStyles,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
 } from '@material-ui/core';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-
-const CustomTextField = withStyles({
-	root: {
-		'& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-			borderColor: 'white',
-		},
-		'&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-			borderColor: 'white',
-		},
-		'& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
-			borderColor: 'gray',
-		},
-		'& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-			borderColor: (props) => props.bordercolor,
-		},
-	},
-})(TextField);
+import Controls from './Controls';
+import RandomNumberDialog from './RandomNumberDialog';
 
 const muiTheme = createMuiTheme({
 	overrides: {
@@ -85,6 +63,7 @@ const muiTheme = createMuiTheme({
 // [X] improve Button Layout
 // [X] bei speed 0 -> instant, evtl checkmark
 // [/] add Path-Color on Insert / Delete / Search
+// [X] fix previous input
 // [ ] improve lag
 // [ ] delete should remove the deleted number from "insertedKeys"
 // [ ] "delete all" button
@@ -100,7 +79,6 @@ let bTree;
 class Home extends Component {
 	constructor(props) {
 		super(props);
-		this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 		this.state = {
 			dirGraph: `digraph g {}`,
 
@@ -120,17 +98,11 @@ class Home extends Component {
 			automaticInsertSwitch: true,
 
 			openDialog: false,
-
-			minValue: 0,
-			maxValue: 100,
-			amountOfKeys: 30,
 		};
 	}
 
 	componentDidMount = () => {
-		this.updateWindowDimensions();
-		window.addEventListener('resize', this.updateWindowDimensions);
-		this.init(this.state.newOrder); // default Order is 3
+		this.initTree(this.state.newOrder); // default Order is 3
 		this.setState({
 			dirGraph: `digraph g {
 				graph [center=true bgcolor="#19181f", pad=1.5]
@@ -140,11 +112,7 @@ class Home extends Component {
 		});
 	};
 
-	updateWindowDimensions() {
-		this.setState({ width: window.innerWidth, height: window.innerHeight - 100 });
-	}
-
-	init(order) {
+	initTree(order) {
 		bTree = new BTree(order);
 		this.draw();
 	}
@@ -205,6 +173,8 @@ class Home extends Component {
 		keys.forEach((key) => {
 			bTree.add(parseInt(key));
 		});
+		const insertedKeys = this.state.insertedKeys;
+		keys = insertedKeys.concat(keys);
 		this.draw();
 		this.setState({ inputField: '', insertedKeys: keys, hideKey: true });
 	}
@@ -246,29 +216,6 @@ class Home extends Component {
 		this.setState({ inputField: keys, insertedKeys });
 	}
 
-	resetTree() {
-		this.setState({
-			dirGraph: `digraph g {}`,
-			insertedKeys: [],
-		});
-		this.init(this.state.newOrder);
-	}
-
-	// Generiert eine bestimmte zufüllige Anzahl an Zahlen zw
-	generateInput = () => {
-		const min = parseInt(this.state.minValue);
-		const max = parseInt(this.state.maxValue);
-		const amnt = parseInt(this.state.amountOfKeys);
-		var arr = [];
-		// https://stackoverflow.com/questions/2380019/generate-unique-random-numbers-between-1-and-100
-		while (arr.length < amnt) {
-			var r = Math.floor(Math.random() * max) + min;
-			if (arr.indexOf(r) === -1) arr.push(r);
-		}
-		arr = arr.join(',');
-		this.setState({ inputField: arr, openDialog: false });
-	};
-
 	// check, ob der Wert ein Array oder ein String. In beiden Fällen wird ein Array zurückgegeben.
 	checkInput() {
 		const input = this.state.inputField.toString();
@@ -280,42 +227,18 @@ class Home extends Component {
 		}
 	}
 
-	changeOrder = (e) => {
-		if (e.target.value) {
-			this.setState({ enteredNumbers: [] }); // reset [] if tree is reset
-			this.init(parseInt(e.target.value));
-		}
-	};
-
-	// inputHasDuplicates(arr1, arr2) {
-	// 	arr2 = this.checkInput(arr2);
-	// 	return arr1.some((r) => arr2.indexOf(r) >= 0);
-	// }
-
-	parseData = (data) => {
-		let csvData = [];
-		let lbreak = data.split('\n');
-		lbreak.forEach((res) => {
-			csvData.push(res.split(','));
+	resetTree() {
+		this.setState({
+			dirGraph: `digraph g {}`,
+			insertedKeys: [],
 		});
-	};
+		this.initTree(this.state.newOrder);
+	}
 
-	handleUpload = (input) => {
-		input = input.target;
-		let csvData = [];
-		if (input.files && input.files[0]) {
-			let reader = new FileReader();
-			reader.readAsBinaryString(input.files[0]);
-			reader.onload = function (e) {
-				let lbreak = e.target.result.split('\n');
-				lbreak.forEach((res) => {
-					// alles außer Zahlen ignorieren
-					if (!!parseFloat(res)) {
-						csvData = res.split(',').map((el) => parseFloat(el));
-					}
-				});
-			};
-			reader.onloadend = () => this.setState({ inputField: csvData });
+	changeOrder = (e) => {
+		this.setState({ [e.target.name]: e.target.value, enteredNumbers: [] }); // reset [] if tree is reset
+		if (Number(e.target.value)) {
+			this.initTree(parseInt(e.target.value));
 		}
 	};
 
@@ -347,142 +270,22 @@ class Home extends Component {
 						<Typography variant="h1" align="center">
 							B-Tree
 						</Typography>
-						<Grid
-							item
-							style={{
-								padding: '10px',
-								margin: '5px',
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-							}}
-						>
-							<Grid item>
-								<CustomTextField
-									variant="outlined"
-									bordercolor={
-										this.state.newOrder > 2 ? 'green' : 'red'
-									}
-									label="Order"
-									value={this.state.newOrder}
-									name="newOrder"
-									size="small"
-									type="number"
-									onChange={(e) => {
-										this.handleChange(e);
-										this.changeOrder(e);
-									}}
-									style={{ margin: '10px', width: '100px' }}
-									inputProps={{
-										autoComplete: 'off',
-										min: 3,
-										max: 9999,
-									}}
-								/>
-								<CustomTextField
-									variant="outlined"
-									bordercolor="green"
-									label="Insert / Delete:"
-									value={this.state.inputField}
-									id="inputField"
-									name="inputField"
-									size="small"
-									onChange={(e) => this.handleChange(e)}
-									style={{ margin: '10px' }}
-									inputProps={{
-										autoComplete: 'off',
-									}}
-									InputLabelProps={{ shrink: true }}
-									disabled={this.state.newOrder < 3 ? true : false}
-									placeholder="55,32,20,10..."
-								/>
-
-								<Button
-									variant="outlined"
-									id="insertButton"
-									onClick={() => this.add(this.checkInput(), true)}
-									style={{ margin: '10px' }}
-									disabled={this.state.newOrder < 3 ? true : false}
-								>
-									{this.state.automaticInsertSwitch
-										? 'Insert'
-										: 'Insert All'}
-								</Button>
-								<Button
-									variant="outlined"
-									onClick={() => this.searchKey(this.checkInput())}
-									style={{
-										margin: '10px',
-										borderColor: 'blueviolet',
-									}}
-									disabled={this.state.newOrder < 3 ? true : false}
-								>
-									Search
-								</Button>
-								<Button
-									variant="outlined"
-									className="redButton"
-									onClick={() => this.removeKeys(this.checkInput())}
-									style={{ margin: '10px' }}
-									disabled={this.state.newOrder < 3 ? true : false}
-								>
-									Delete
-								</Button>
-							</Grid>
-							{/* <div style={{width: '100%'}}></div> */}
-							<Grid item>
-								<input
-									accept=".csv"
-									id="csvUpload"
-									multiple
-									type="file"
-									style={{ display: 'none' }}
-									onChange={(e, file) => this.handleUpload(e, file)}
-								/>
-								<label htmlFor="csvUpload">
-									<Button
-										id="uploadButton"
-										className="defaultButton"
-										variant="outlined"
-										startIcon={<CloudUploadIcon />}
-										style={{ margin: '10px', color: 'white' }}
-										component="span"
-									>
-										Upload CSV
-									</Button>
-								</label>
-
-								<Button
-									variant="outlined"
-									className="defaultButton"
-									onClick={() => this.setState({ openDialog: true })}
-									style={{ margin: '10px' }}
-									disabled={this.state.newOrder < 3 ? true : false}
-								>
-									Generate Keys
-								</Button>
-								<Button
-									className="redButton"
-									variant="outlined"
-									style={{ margin: '10px' }}
-									onClick={() => this.resetTree()}
-								>
-									Reset Tree
-								</Button>
-							</Grid>
+						<Grid id="upperControls" item>
+							<Controls
+								openDialog={() => this.setState({ openDialog: true })}
+								inputValues={this.state.inputField}
+								setInputValues={(input) =>
+									this.setState({ inputField: input })
+								}
+								add={(keys, insertAll) => this.add(keys, insertAll)}
+								removeKeys={(keys) => this.removeKeys(keys)}
+								resetTree={() => this.resetTree()}
+								changeOrder={(order) => this.changeOrder(order)}
+								currentOrder={this.state.newOrder}
+								isAutomaticInsert={this.state.automaticInsertSwitch}
+							/>
 						</Grid>
-						<Grid
-							item
-							style={{
-								display: 'flex',
-								justifyContent: 'center',
-								width: '1300px',
-								height: '500px',
-								border: 'solid white 1px',
-								backgroundColor: '#19181f',
-								position: 'relative',
-							}}
-						>
+						<Grid id="treeContainer" item>
 							<Typography
 								style={{
 									bottom: 0,
@@ -613,84 +416,13 @@ class Home extends Component {
 								</Grid>
 							</Typography>
 						</Grid>
-						<Dialog open={this.state.openDialog}>
-							<DialogTitle>{'Generate Unique Random Keys'}</DialogTitle>
-							<DialogContent>
-								<CustomTextField
-									variant="outlined"
-									bordercolor="white"
-									label="Min Value"
-									value={this.state.minValue}
-									id="minValue"
-									name="minValue"
-									size="small"
-									type="number"
-									onChange={(e) => this.handleChange(e)}
-									style={{ margin: '10px', width: '100px' }}
-									inputProps={{
-										autoComplete: 'off',
-									}}
-									InputLabelProps={{ shrink: true }}
-									min={0}
-								/>
-								<CustomTextField
-									variant="outlined"
-									bordercolor="white"
-									label="Max Value"
-									value={this.state.maxValue}
-									id="maxValue"
-									name="maxValue"
-									size="small"
-									type="number"
-									onChange={(e) => this.handleChange(e)}
-									style={{ margin: '10px', width: '100px' }}
-									inputProps={{
-										autoComplete: 'off',
-										min: 0,
-									}}
-									InputLabelProps={{ shrink: true }}
-								/>
-								<CustomTextField
-									variant="outlined"
-									bordercolor="white"
-									label="Amount of Keys"
-									value={this.state.amountOfKeys}
-									id="amountOfKeys"
-									name="amountOfKeys"
-									size="small"
-									type="number"
-									onChange={(e) => this.handleChange(e)}
-									style={{ margin: '10px', width: '150px' }}
-									inputProps={{
-										autoComplete: 'off',
-										min: 0,
-									}}
-									InputLabelProps={{ shrink: true }}
-								/>
-							</DialogContent>
-							<DialogActions>
-								<Button
-									onClick={() => this.setState({ openDialog: false })}
-								>
-									Cancel
-								</Button>
-								<Button
-									onClick={this.generateInput}
-									color="primary"
-									disabled={
-										parseInt(this.state.minValue) >=
-											parseInt(this.state.maxValue) ||
-										parseInt(this.state.maxValue) -
-											parseInt(this.state.minValue) <
-											parseInt(this.state.amountOfKeys)
-											? true
-											: false
-									}
-								>
-									Generate
-								</Button>
-							</DialogActions>
-						</Dialog>
+						<RandomNumberDialog
+							closeDialog={() => this.setState({ openDialog: false })}
+							dialogOpen={this.state.openDialog}
+							setRandomNumbers={(input) =>
+								this.setState({ inputField: input })
+							}
+						/>
 					</Grid>
 				</ThemeProvider>
 			</>
