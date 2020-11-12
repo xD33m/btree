@@ -317,6 +317,10 @@ class Home extends Component {
 									// fit: true,
 									width: 1295,
 									height: 495,
+									tweenPaths: false,
+									tweenShapes: false,
+									convertEqualSidedPolygons: false,
+									useWorker: true,
 								}}
 							/>
 						</Grid>
