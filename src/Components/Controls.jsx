@@ -39,6 +39,11 @@ class Controls extends Component {
 		}
 	}
 
+	keyWasInserted(arr1, arr2) {
+		arr2 = this.checkInput(arr2);
+		return arr1.some((r) => arr2.indexOf(r) >= 0);
+	}
+
 	handleUpload = (input) => {
 		input = input.target;
 		let csvData = [];
@@ -58,11 +63,24 @@ class Controls extends Component {
 		}
 	};
 
+	hasDuplicates = (array) => {
+		return new Set(array).size !== array.length;
+	};
+
+	inputIsEmpty = () => {
+		const input = this.props.inputValues;
+		if (input === '') return true;
+	};
+
 	handleInput = (e) => {
 		const input = e.target.value;
 		// const re = /^\d+(,\d+)*/;
 		// if ((input === '', input === ',' || re.test(input))) {
-		this.props.setInputValues(input);
+		let arr = input.split(',');
+		if (!this.hasDuplicates(arr)) {
+			this.props.setInputValues(input);
+		}
+
 		// }
 	};
 
@@ -70,6 +88,7 @@ class Controls extends Component {
 		const {
 			openDialog,
 			inputValues,
+			insertedKeys,
 			add,
 			removeKeys,
 			currentOrder,
@@ -121,7 +140,13 @@ class Controls extends Component {
 						id="insertButton"
 						onClick={() => add(this.checkInput(), true)}
 						style={{ margin: '10px' }}
-						disabled={currentOrder < 3 ? true : false}
+						disabled={
+							currentOrder < 3 ||
+							(this.keyWasInserted(insertedKeys, inputValues) &&
+								!this.inputIsEmpty())
+								? true
+								: false
+						}
 					>
 						{isAutomaticInsert ? 'Insert' : 'Insert All'}
 					</Button>
@@ -141,7 +166,13 @@ class Controls extends Component {
 						className="redButton"
 						onClick={() => removeKeys(this.checkInput())}
 						style={{ margin: '10px' }}
-						disabled={currentOrder < 3 ? true : false}
+						disabled={
+							currentOrder < 3 ||
+							(!this.keyWasInserted(insertedKeys, inputValues) &&
+								!this.inputIsEmpty())
+								? true
+								: false
+						}
 					>
 						Delete
 					</Button>
