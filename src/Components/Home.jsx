@@ -285,6 +285,7 @@ class Home extends Component {
 				return true;
 			}
 		}
+		return false;
 	};
 
 	// check, ob der Wert ein Array oder ein String. In beiden Fällen wird ein Array zurückgegeben.
