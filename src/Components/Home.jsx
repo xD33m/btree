@@ -73,7 +73,7 @@ const muiTheme = createMuiTheme({
 // [X] "delete all" button
 // [ ] add "enable Zoom"
 // [X] add correct duplicate detection
-// [ ] improve Visulisation performance?
+// [X] improve Visulisation performance?
 // [X] handle incorrect input
 // --- BAUM ---
 // [ ] "Suchen"-Button -> Suchfunktion
