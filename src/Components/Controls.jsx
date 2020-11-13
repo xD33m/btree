@@ -82,27 +82,10 @@ class Controls extends Component {
 		// }
 	};
 
-	everyKeyCanBeDeleted = (arr) => {
-		let isSame = true;
-		const insertedKeys = this.props.insertedKeys;
-		if (arr === insertedKeys) return true;
-		if (arr.length === 1 && insertedKeys.includes(arr[0])) return true;
-		if (arr == null || insertedKeys == null) return false;
-
-		arr.sort();
-		insertedKeys.sort();
-
-		for (var i = 0; i < arr.length; ++i) {
-			if (arr[i] !== insertedKeys[i]) isSame = false;
-		}
-		return isSame;
-	};
-
 	render() {
 		const {
 			openDialog,
 			inputValues,
-			insertedKeys,
 			add,
 			removeKeys,
 			currentOrder,
@@ -154,13 +137,6 @@ class Controls extends Component {
 						id="insertButton"
 						onClick={() => add(this.checkInput(), true)}
 						style={{ margin: '10px' }}
-						disabled={
-							currentOrder < 3 ||
-							(this.keyWasInserted(insertedKeys, inputValues) &&
-								!this.inputIsEmpty())
-								? true
-								: false
-						}
 					>
 						{isAutomaticInsert ? 'Insert' : 'Insert All'}
 					</Button>
@@ -180,13 +156,6 @@ class Controls extends Component {
 						className="redButton"
 						onClick={() => removeKeys(this.checkInput())}
 						style={{ margin: '10px' }}
-						disabled={
-							currentOrder < 3 ||
-							(!this.keyWasInserted(insertedKeys, inputValues) &&
-								!this.inputIsEmpty())
-								? true
-								: false
-						}
 					>
 						Delete
 					</Button>
