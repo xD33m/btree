@@ -212,7 +212,7 @@ class Home extends Component {
 		} else {
 			keys = latestInsert;
 		}
-		const keyToDelIndex = insertedKeys.indexOfKey(parseInt(latestInsert));
+		const keyToDelIndex = insertedKeys.indexOf(parseInt(latestInsert));
 		insertedKeys.splice(keyToDelIndex, 1);
 		this.setState({ inputField: keys, insertedKeys });
 	}

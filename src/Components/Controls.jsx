@@ -1,5 +1,5 @@
-import { Button, Grid, TextField, withStyles } from '@material-ui/core';
 import React, { Component } from 'react';
+import { Button, Grid, TextField, withStyles } from '@material-ui/core';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import { isNumber } from '../js/helpers';
 
@@ -23,9 +23,7 @@ const CustomTextField = withStyles({
 class Controls extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			inputField: '',
-		};
+		this.state = {};
 	}
 
 	// check, ob der Wert ein Array oder ein String. In beiden Fällen wird ein Array zurückgegeben.
@@ -82,6 +80,22 @@ class Controls extends Component {
 		}
 
 		// }
+	};
+
+	everyKeyCanBeDeleted = (arr) => {
+		let isSame = true;
+		const insertedKeys = this.props.insertedKeys;
+		if (arr === insertedKeys) return true;
+		if (arr.length === 1 && insertedKeys.includes(arr[0])) return true;
+		if (arr == null || insertedKeys == null) return false;
+
+		arr.sort();
+		insertedKeys.sort();
+
+		for (var i = 0; i < arr.length; ++i) {
+			if (arr[i] !== insertedKeys[i]) isSame = false;
+		}
+		return isSame;
 	};
 
 	render() {
