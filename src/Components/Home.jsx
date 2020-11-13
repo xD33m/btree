@@ -69,12 +69,12 @@ const muiTheme = createMuiTheme({
 // [/] add Path-Color on Insert / Delete / Search
 // [X] fix previous input
 // [X] improve lag
-// [ ] delete should remove the deleted number from "insertedKeys"
-// [ ] "delete all" button
+// [X] delete should remove the deleted number from "insertedKeys"
+// [X] "delete all" button
 // [ ] add "enable Zoom"
-// [ ] add correct duplicate detection
+// [X] add correct duplicate detection
 // [ ] improve Visulisation performance?
-// [ ] handle incorrect input
+// [X] handle incorrect input
 // --- BAUM ---
 // [ ] "Suchen"-Button -> Suchfunktion
 // [X] Delete fixen
@@ -195,26 +195,39 @@ class Home extends Component {
 	};
 
 	removeKeys(keys) {
+		const isAutomaticInsert = this.state.automaticInsertSwitch;
+
 		if (this.isInvalidInput(keys, 'delete')) {
 			return;
 		}
 		this.setState({ inputField: '' });
-		let execForEach = Promise.resolve();
-		keys.forEach((key, index) => {
-			execForEach = execForEach.then(() => {
+		if (isAutomaticInsert) {
+			let execForEach = Promise.resolve();
+			keys.forEach((key, index) => {
+				execForEach = execForEach.then(() => {
+					bTree.remove(parseInt(key));
+					this.draw();
+					let insertedKeys = this.state.insertedKeys;
+					const keyToDelIndex = insertedKeys.indexOf(parseInt(key));
+					insertedKeys.splice(keyToDelIndex, 1);
+					this.setState({ insertedKeys });
+					return sleep(this.state.insertSpeed);
+				});
+			});
+		} else {
+			let insertedKeys = this.state.insertedKeys;
+			keys.forEach((key, index) => {
 				bTree.remove(parseInt(key));
-				this.draw();
-				let insertedKeys = this.state.insertedKeys;
 				const keyToDelIndex = insertedKeys.indexOf(parseInt(key));
 				insertedKeys.splice(keyToDelIndex, 1);
-				this.setState({ insertedKeys });
-				return sleep(this.state.insertSpeed);
 			});
-		});
+			this.setState({ insertedKeys });
+			this.draw();
+		}
 	}
 
 	previousStep(keys) {
-		if (this.isInvalidInput(keys, 'delete')) {
+		if (this.isInvalidInput(keys, 'previous')) {
 			return;
 		}
 		let insertedKeys = this.state.insertedKeys;
@@ -262,6 +275,12 @@ class Home extends Component {
 		} else if (type === 'delete') {
 			if (!everyKeyCanBeDeleted(keys, insertedKeys)) {
 				errorText = 'A least one number is not in the tree';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			}
+		} else if (type === 'previous') {
+			if (insertedKeys.length === 0) {
+				errorText = "You can't go back any further";
 				this.setState({ snackbarOpen: true, snackbarText: errorText });
 				return true;
 			}

@@ -157,7 +157,7 @@ class Controls extends Component {
 						onClick={() => removeKeys(this.checkInput())}
 						style={{ margin: '10px' }}
 					>
-						Delete
+						{isAutomaticInsert ? 'Delete' : 'Delete All'}
 					</Button>
 				</Grid>
 				<Grid item>
