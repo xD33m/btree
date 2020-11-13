@@ -1,20 +1,24 @@
 import React, { Component } from 'react';
 import { BTree } from '../js/btree';
-import { isNumber, sleep } from '../js/helpers';
+import { everyKeyCanBeDeleted, isNumber, sleep } from '../js/helpers';
 import { Graphviz } from 'graphviz-react';
 import {
 	Button,
 	createMuiTheme,
 	Grid,
+	IconButton,
 	Slider,
+	Snackbar,
 	Switch,
 	ThemeProvider,
 	Typography,
 } from '@material-ui/core';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import Controls from './Controls';
 import RandomNumberDialog from './RandomNumberDialog';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
+import CloseIcon from '@material-ui/icons/Close';
+import { Alert } from '@material-ui/lab';
 
 const muiTheme = createMuiTheme({
 	overrides: {
@@ -97,6 +101,9 @@ class Home extends Component {
 			automaticInsertSwitch: true,
 
 			openDialog: false,
+
+			snackbarOpen: false,
+			snackbarText: '',
 		};
 	}
 
@@ -122,7 +129,9 @@ class Home extends Component {
 	}
 
 	add = async (keys, insertAll) => {
-		if (keys.length === 1 && keys[0] === '') return;
+		if (this.isInvalidInput(keys, 'insert')) {
+			return;
+		}
 		const isAutomaticInsert = this.state.automaticInsertSwitch;
 		// manuelles einfügen, wenn auf "next" geklickt wird
 		if (!isAutomaticInsert && !insertAll) {
@@ -186,6 +195,9 @@ class Home extends Component {
 	};
 
 	removeKeys(keys) {
+		if (this.isInvalidInput(keys, 'delete')) {
+			return;
+		}
 		this.setState({ inputField: '' });
 		let execForEach = Promise.resolve();
 		keys.forEach((key, index) => {
@@ -202,6 +214,9 @@ class Home extends Component {
 	}
 
 	previousStep(keys) {
+		if (this.isInvalidInput(keys, 'delete')) {
+			return;
+		}
 		let insertedKeys = this.state.insertedKeys;
 		const latestInsert = insertedKeys[insertedKeys.length - 1];
 		bTree.remove(parseInt(latestInsert));
@@ -217,8 +232,44 @@ class Home extends Component {
 		this.setState({ inputField: keys, insertedKeys });
 	}
 
+	isInvalidInput = (keys, type) => {
+		let errorText = '';
+		let insertedKeys = this.state.insertedKeys;
+		if (type === 'insert' || type === 'delete') {
+			if (keys.length === 1 && keys[0] === '') {
+				errorText = 'Enter some numbers first';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			} else if (new Set(keys).size !== keys.length) {
+				// input has duplicates
+				errorText = 'The input has duplicates';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			} else if (keys.some(isNaN) || keys.includes('')) {
+				// check for non Integer
+				errorText = 'Only numberic input allowed';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			}
+		}
+		if (type === 'insert') {
+			// eine oder mehrere Zahlen wurden schon eingefügt
+			if (insertedKeys.some((r) => keys.indexOf(r) >= 0)) {
+				errorText = 'A least one number has already been inserted';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			}
+		} else if (type === 'delete') {
+			if (!everyKeyCanBeDeleted(keys, insertedKeys)) {
+				errorText = 'A least one number is not in the tree';
+				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				return true;
+			}
+		}
+	};
+
 	// check, ob der Wert ein Array oder ein String. In beiden Fällen wird ein Array zurückgegeben.
-	checkInput() {
+	inputToArray() {
 		const input = this.state.inputField.toString();
 		if (!input.includes(',') && input) {
 			return [parseFloat(this.state.inputField)];
@@ -249,6 +300,13 @@ class Home extends Component {
 
 	setInsertSpeed = (e, value) => {
 		this.setState({ insertSpeed: value });
+	};
+
+	handleSnackClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		this.setState({ snackbarOpen: false });
 	};
 
 	handleChange = (e) => {
@@ -340,7 +398,7 @@ class Home extends Component {
 										className="defaultButton"
 										startIcon={<ArrowBackIcon />}
 										onClick={() =>
-											this.previousStep(this.checkInput())
+											this.previousStep(this.inputToArray())
 										}
 										style={{ margin: '20px 10px 10px 10px' }}
 										disabled={this.state.newOrder < 3 ? true : false}
@@ -352,7 +410,7 @@ class Home extends Component {
 										className="defaultButton"
 										endIcon={<ArrowForwardIcon />}
 										onClick={() => {
-											this.add(this.checkInput());
+											this.add(this.inputToArray());
 										}}
 										style={{ margin: '20px 10px 10px 10px' }}
 										disabled={this.state.newOrder < 3 ? true : false}
@@ -430,6 +488,31 @@ class Home extends Component {
 							}
 						/>
 					</Grid>
+					<Snackbar
+						anchorOrigin={{
+							vertical: 'top',
+							horizontal: 'center',
+						}}
+						open={this.state.snackbarOpen}
+						autoHideDuration={2500}
+						onClose={this.handleSnackClose}
+						style={{ marginTop: '239px' }}
+						// message={this.state.snackbarText}
+						action={
+							<React.Fragment>
+								<IconButton
+									size="small"
+									aria-label="close"
+									color="inherit"
+									onClick={this.handleSnackClose}
+								>
+									<CloseIcon fontSize="small" />
+								</IconButton>
+							</React.Fragment>
+						}
+					>
+						<Alert severity="error">{this.state.snackbarText}</Alert>
+					</Snackbar>
 				</ThemeProvider>
 			</>
 		);
