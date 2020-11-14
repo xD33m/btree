@@ -71,13 +71,13 @@ const muiTheme = createMuiTheme({
 // [X] improve lag
 // [X] delete should remove the deleted number from "insertedKeys"
 // [X] "delete all" button
-// [ ] add "enable Zoom"
 // [X] add correct duplicate detection
 // [X] improve Visulisation performance?
 // [X] handle incorrect input
+// [ ] add "enable Zoom"
 // --- BAUM ---
-// [ ] "Suchen"-Button -> Suchfunktion
 // [X] Delete fixen
+// [ ] "Suchen"-Button -> Suchfunktion
 
 let bTree;
 class Home extends Component {
@@ -104,6 +104,7 @@ class Home extends Component {
 
 			snackbarOpen: false,
 			snackbarText: '',
+			snackbarType: 'error',
 		};
 	}
 
@@ -153,6 +154,28 @@ class Home extends Component {
 			});
 			execForEach.then(async () => {
 				this.redrawAfterDelay(800);
+			});
+		}
+	};
+
+	search = (keys) => {
+		if (this.isInvalidInput(keys, 'search')) {
+			return;
+		}
+		const isFound = bTree.search(keys[0]);
+		if (isFound.found) {
+			const text = `${keys[0]} was found. Cost: ${isFound.cost}.`;
+			this.setState({
+				snackbarOpen: true,
+				snackbarText: text,
+				snackbarType: 'success',
+			});
+		} else {
+			const text = `${keys[0]} was not found. Cost: ${isFound.cost}.`;
+			this.setState({
+				snackbarOpen: true,
+				snackbarText: text,
+				snackbarType: 'error',
 			});
 		}
 	};
@@ -251,17 +274,17 @@ class Home extends Component {
 		if (type === 'insert' || type === 'delete') {
 			if (keys.length === 1 && keys[0] === '') {
 				errorText = 'Enter some numbers first';
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
 				return true;
 			} else if (new Set(keys).size !== keys.length) {
 				// input has duplicates
 				errorText = 'The input has duplicates';
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
 				return true;
 			} else if (keys.some(isNaN) || keys.includes('')) {
 				// check for non Integer
 				errorText = 'Only numberic input allowed';
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
 				return true;
 			}
 		}
@@ -269,24 +292,46 @@ class Home extends Component {
 			// eine oder mehrere Zahlen wurden schon eingefügt
 			if (insertedKeys.some((r) => keys.indexOf(r) >= 0)) {
 				errorText = 'A least one number has already been inserted';
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
 				return true;
 			}
 		} else if (type === 'delete') {
 			if (!everyKeyCanBeDeleted(keys, insertedKeys)) {
 				errorText = 'A least one number is not in the tree';
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
 				return true;
 			}
 		} else if (type === 'previous') {
 			if (insertedKeys.length === 0) {
 				errorText = "You can't go back any further";
-				this.setState({ snackbarOpen: true, snackbarText: errorText });
+				this.displaySnackbar(errorText);
+				return true;
+			}
+		} else if (type === 'search') {
+			if (keys.length === 1 && keys[0] === '') {
+				errorText = 'Enter a number first';
+				this.displaySnackbar(errorText);
+				return true;
+			} else if (keys.length > 1) {
+				errorText = 'You can only search one number at a time';
+				this.displaySnackbar(errorText);
+				return true;
+			} else if (keys.some(isNaN) || keys.includes('')) {
+				errorText = 'Only numberic input allowed';
+				this.displaySnackbar(errorText);
 				return true;
 			}
 		}
 		return false;
 	};
+
+	displaySnackbar(errorText) {
+		this.setState({
+			snackbarOpen: true,
+			snackbarText: errorText,
+			snackbarType: 'error',
+		});
+	}
 
 	// check, ob der Wert ein Array oder ein String. In beiden Fällen wird ein Array zurückgegeben.
 	inputToArray() {
@@ -363,6 +408,7 @@ class Home extends Component {
 								currentOrder={this.state.newOrder}
 								isAutomaticInsert={this.state.automaticInsertSwitch}
 								insertedKeys={this.state.insertedKeys}
+								searchKey={(key) => this.search(key)}
 							/>
 						</Grid>
 						<Grid id="treeContainer" item>
@@ -531,7 +577,9 @@ class Home extends Component {
 							</React.Fragment>
 						}
 					>
-						<Alert severity="error">{this.state.snackbarText}</Alert>
+						<Alert severity={this.state.snackbarType}>
+							{this.state.snackbarText}
+						</Alert>
 					</Snackbar>
 				</ThemeProvider>
 			</>

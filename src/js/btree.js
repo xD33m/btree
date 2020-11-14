@@ -11,13 +11,19 @@ export class BTree {
 	}
 
 	remove(key) {
-		var removed = this._root.remove(key);
+		let removed = this._root.remove(key);
 
 		if (this._root.keyCount() === 0 && this._root._childs[0]) {
 			this._root = this._root._childs[0];
 		}
 
 		return removed;
+	}
+
+	search(key) {
+		let deph = 0;
+		const keyFound = this._root.search(key, deph);
+		return keyFound;
 	}
 
 	newNode(split) {
@@ -220,6 +226,29 @@ class BTreeNode {
 				return true;
 			}
 		}
+	}
+
+	search(key) {
+		let cost = 1;
+		let found = this._keys.includes(key);
+		let child = this;
+		while (true) {
+			if (child.isLeaf()) {
+				found = child._keys.includes(key);
+				break;
+			} else {
+				const keyIndex = child._keys.indexOf(key);
+				if (keyIndex === -1) {
+					cost++;
+					child = child.getChildforNewKey(key);
+				} else {
+					found = true;
+					break;
+				}
+			}
+		}
+
+		return { found, cost };
 	}
 
 	rebalance(childIndex) {

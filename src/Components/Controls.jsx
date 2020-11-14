@@ -92,6 +92,7 @@ class Controls extends Component {
 			changeOrder,
 			isAutomaticInsert,
 			resetTree,
+			searchKey,
 		} = this.props;
 		return (
 			<>
@@ -142,7 +143,7 @@ class Controls extends Component {
 					</Button>
 					<Button
 						variant="outlined"
-						onClick={() => this.searchKey(this.checkInput())}
+						onClick={() => searchKey(this.checkInput())}
 						style={{
 							margin: '10px',
 							borderColor: 'blueviolet',
