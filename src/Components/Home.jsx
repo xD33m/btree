@@ -74,10 +74,14 @@ const muiTheme = createMuiTheme({
 // [X] add correct duplicate detection
 // [X] improve Visulisation performance?
 // [X] handle incorrect input
+// [X] fix bug after reset "child undefined"
 // [ ] add "enable Zoom"
+// [ ] hide empty node on reset
+// [ ] insert/delete all button
+// [ ] color complete path
 // --- BAUM ---
 // [X] Delete fixen
-// [ ] "Suchen"-Button -> Suchfunktion
+// [X] "Suchen"-Button -> Suchfunktion
 
 let bTree;
 class Home extends Component {
@@ -109,7 +113,7 @@ class Home extends Component {
 	}
 
 	componentDidMount = () => {
-		this.initTree(this.state.newOrder); // default Order is 3
+		this.initTree(parseInt(this.state.newOrder)); // default Order is 3
 		this.setState({
 			dirGraph: `digraph g {
 				graph [center=true bgcolor="#19181f", pad=1.5]
@@ -170,6 +174,7 @@ class Home extends Component {
 				snackbarText: text,
 				snackbarType: 'success',
 			});
+			this.draw(keys[0]);
 		} else {
 			const text = `${keys[0]} was not found. Cost: ${isFound.cost}.`;
 			this.setState({
@@ -349,7 +354,7 @@ class Home extends Component {
 			dirGraph: `digraph g {}`,
 			insertedKeys: [],
 		});
-		this.initTree(this.state.newOrder);
+		this.initTree(parseInt(this.state.newOrder));
 	}
 
 	changeOrder = (e) => {
