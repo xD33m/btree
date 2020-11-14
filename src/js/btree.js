@@ -406,7 +406,7 @@ class BTreeNode {
 	parseObject(counter, graphString, key) {
 		let nodeid = `node${counter.add()}`;
 		graphString.add(
-			`${nodeid}[label= <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR>"`
+			`${nodeid}[label= <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0"><TR>`
 		);
 		let i;
 		for (i = 0; i < this._keyCount; i++) {
