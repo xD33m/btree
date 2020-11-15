@@ -4,7 +4,7 @@ import { everyKeyCanBeDeleted, isNumber, sleep } from '../js/helpers';
 import { Graphviz } from 'graphviz-react';
 import {
 	Button,
-	createMuiTheme,
+	unstable_createMuiStrictModeTheme as createMuiTheme,
 	Grid,
 	IconButton,
 	Slider,
@@ -79,6 +79,7 @@ const muiTheme = createMuiTheme({
 // [ ] hide empty node on reset
 // [ ] insert/delete all button
 // [ ] color complete path
+// [ ] dislay render / algorithm performance
 // --- BAUM ---
 // [X] Delete fixen
 // [X] "Suchen"-Button -> Suchfunktion
@@ -296,13 +297,13 @@ class Home extends Component {
 		if (type === 'insert') {
 			// eine oder mehrere Zahlen wurden schon eingefügt
 			if (insertedKeys.some((r) => keys.indexOf(r) >= 0)) {
-				errorText = 'A least one number has already been inserted';
+				errorText = 'A number has already been inserted';
 				this.displaySnackbar(errorText);
 				return true;
 			}
 		} else if (type === 'delete') {
 			if (!everyKeyCanBeDeleted(keys, insertedKeys)) {
-				errorText = 'A least one number is not in the tree';
+				errorText = 'At least one number is not in the tree';
 				this.displaySnackbar(errorText);
 				return true;
 			}
