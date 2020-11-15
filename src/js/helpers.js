@@ -12,3 +12,22 @@ export const everyKeyCanBeDeleted = (input, insertedKeys) => {
 	}
 	return true;
 };
+
+// Helper-Klassen für den fomrmatierten Output für GraphViz
+export class GraphString {
+	constructor() {
+		this.str = '';
+	}
+	add(str) {
+		this.str += str;
+	}
+}
+
+export class Counter {
+	constructor() {
+		this.count = 0;
+	}
+	add() {
+		return this.count++;
+	}
+}

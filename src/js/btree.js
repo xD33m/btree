@@ -1,3 +1,5 @@
+import { GraphString, Counter } from './helpers';
+
 export class BTree {
 	constructor(order) {
 		this._root = new BTreeNode(order);
@@ -207,7 +209,7 @@ class BTreeNode {
 		if (this.isLeaf()) {
 			return this.removeKey(key);
 		} else {
-			let keyIndex = this.indexOfKey(key); // check if key current node
+			let keyIndex = this._keys.indexOf(key); // check if key current node
 			let child;
 
 			if (keyIndex === -1) {
@@ -220,7 +222,7 @@ class BTreeNode {
 			} else {
 				// replace key with max key from left child
 				child = this._childs[keyIndex];
-				this._keys[keyIndex] = child.extractMax();
+				this._keys[keyIndex] = child.getMaxKey();
 
 				this.rebalance(keyIndex);
 				return true;
@@ -358,7 +360,7 @@ class BTreeNode {
 		return left;
 	}
 
-	extractMax() {
+	getMaxKey() {
 		let key;
 
 		if (this.isLeaf()) {
@@ -366,7 +368,7 @@ class BTreeNode {
 			this._keyCount--;
 		} else {
 			let child = this._childs[this._keyCount];
-			key = child.extractMax();
+			key = child.getMaxKey();
 
 			this.rebalance(this._keyCount);
 		}
@@ -374,18 +376,8 @@ class BTreeNode {
 		return key;
 	}
 
-	indexOfKey(key) {
-		for (let i = 0; i < this._keyCount; i += 1) {
-			if (this._keys[i] === key) {
-				return i;
-			}
-		}
-
-		return -1;
-	}
-
 	removeKey(key) {
-		let keyIndex = this.indexOfKey(key);
+		let keyIndex = this._keys.indexOf(key);
 		if (keyIndex === -1) return false;
 		this._keys.splice(keyIndex, 1);
 		this._keyCount--;
@@ -436,24 +428,5 @@ class BTreeNode {
 			}
 		});
 		return nodeid;
-	}
-}
-
-// Helper-Klassen für den fomrmatierten Output für GraphViz
-class GraphString {
-	constructor() {
-		this.str = '';
-	}
-	add(str) {
-		this.str += str;
-	}
-}
-
-class Counter {
-	constructor() {
-		this.count = 0;
-	}
-	add() {
-		return this.count++;
 	}
 }
