@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BTree } from '../js/btree';
+import BTree from '../js/BTree';
 import { everyKeyCanBeDeleted, isNumber, sleep } from '../js/helpers';
 import { Graphviz } from 'graphviz-react';
 import {
@@ -80,6 +80,7 @@ const muiTheme = createMuiTheme({
 // [ ] insert/delete all button
 // [ ] color complete path
 // [ ] dislay render / algorithm performance
+// [ ] sleep for search
 // --- BAUM ---
 // [X] Delete fixen
 // [X] "Suchen"-Button -> Suchfunktion
