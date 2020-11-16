@@ -16,8 +16,8 @@ class BTreeNode {
 		return this._keyCount === this._order - 1;
 	}
 
-	keyCount() {
-		return this._keyCount;
+	allowedMinKeys() {
+		return Math.ceil(this._order / 2 - 1);
 	}
 
 	// add ist die Einfügeoperation in den Baum
@@ -47,7 +47,7 @@ class BTreeNode {
 
 	insertKey(key) {
 		// perform insertion sort on keys
-		let pos = this.keyCount();
+		let pos = this._keyCount;
 		let keys = this._keys;
 
 		while (pos > 0 && keys[pos - 1] > key) {
@@ -61,32 +61,32 @@ class BTreeNode {
 
 	insertSplit(split) {
 		// splited child
-		let child = split.left;
+		let leftChild = split.left;
 
 		// insert key with right child poped up from
 		// child node
 		// case A: first child was split
-		if (child === this._childs[0]) {
+		if (leftChild === this._childs[0]) {
 			for (let i = this._keyCount; i > 0; i--) this._keys[i] = this._keys[i - 1];
 			this._keys[0] = split.key;
 
 			for (let i = this._keyCount + 1; i > 1; i--)
 				this._childs[i] = this._childs[i - 1];
-			this._childs[0] = child;
+			this._childs[0] = leftChild;
 			this._childs[1] = split.right;
 		}
 
 		// case B: [key][split-child] (split child is on the right)
 		else {
-			let pos = this._keyCount;
-			while (pos > 0 && this._childs[pos] !== child) {
-				this._keys[pos] = this._keys[pos - 1];
-				this._childs[pos + 1] = this._childs[pos];
-				pos--;
+			let index = this._keyCount;
+			while (index > 0 && this._childs[index] !== leftChild) {
+				this._keys[index] = this._keys[index - 1];
+				this._childs[index + 1] = this._childs[index];
+				index--;
 			}
 
-			this._keys[pos] = split.key;
-			this._childs[pos + 1] = split.right;
+			this._keys[index] = split.key;
+			this._childs[index + 1] = split.right;
 		}
 
 		// rest
@@ -95,13 +95,13 @@ class BTreeNode {
 
 	// nextChildDestination gibt die Node zurück, wo der Key eingefügt werden soll
 	nextChildDestination(key) {
-		for (let i = 0; i < this.keyCount(); i += 1) {
+		for (let i = 0; i < this._keyCount; i += 1) {
 			if (key <= this._keys[i]) {
 				return this._childs[i];
 			}
 		}
 
-		return this._childs[this.keyCount()];
+		return this._childs[this._keyCount];
 	}
 
 	// split teilt eine Node in 2 Nodes + dem mitteren Key und gibt diese dann zurück
@@ -210,10 +210,8 @@ class BTreeNode {
 	}
 
 	rebalance(childIndex) {
-		const MIN_NKEYS = Math.ceil(this._order / 2 - 1);
-
 		let child = this._childs[childIndex];
-		if (child.keyCount() >= MIN_NKEYS) {
+		if (child._keyCount >= this.allowedMinKeys()) {
 			// don't rebalance if enough keys
 			return;
 		}
@@ -221,11 +219,11 @@ class BTreeNode {
 		// borrow from left child if childindex !== 0 also wenn ein linkes child exisitiert
 		if (childIndex) {
 			let leftChild = this._childs[childIndex - 1];
-			if (leftChild.keyCount() > MIN_NKEYS) {
-				let lastKey = leftChild._keys[leftChild.keyCount() - 1];
+			if (leftChild._keyCount > this.allowedMinKeys()) {
+				let lastKey = leftChild._keys[leftChild._keyCount - 1];
 				let lastChild = null;
 				if (!leftChild.isLeaf()) {
-					lastChild = leftChild._childs[leftChild.keyCount()];
+					lastChild = leftChild._childs[leftChild._keyCount];
 				}
 				leftChild._keyCount--;
 
@@ -248,25 +246,25 @@ class BTreeNode {
 		}
 
 		// borrow from right child
-		if (childIndex < this.keyCount()) {
+		if (childIndex < this._keyCount) {
 			let rightChild = this._childs[childIndex + 1];
-			if (rightChild.keyCount() > MIN_NKEYS) {
+			if (rightChild._keyCount > this.allowedMinKeys()) {
 				let firstKey = rightChild._keys[0];
 				let firstChild = rightChild._childs[0];
 
-				for (let i = 0; i < rightChild.keyCount() - 1; i++) {
+				for (let i = 0; i < rightChild._keyCount - 1; i++) {
 					rightChild._keys[i] = rightChild._keys[i + 1];
 				}
 
-				for (let i = 0; i < rightChild.keyCount(); i++) {
+				for (let i = 0; i < rightChild._keyCount; i++) {
 					rightChild._childs[i] = rightChild._childs[i + 1];
 				}
 
 				rightChild._keyCount--;
 
-				child._keys[child.keyCount()] = this._keys[childIndex];
+				child._keys[child._keyCount] = this._keys[childIndex];
 				this._keys[childIndex] = firstKey;
-				child._childs[child.keyCount() + 1] = firstChild;
+				child._childs[child._keyCount + 1] = firstChild;
 				child._keyCount++;
 
 				return;
@@ -326,7 +324,7 @@ class BTreeNode {
 			let child = this._childs[this._keyCount];
 			key = child.getMaxKey();
 
-			this.rebalance(this._keyCount);
+			this.rebalance(this._keyCount); // von unten nach oben alles ausbalancieren
 		}
 
 		return key;

@@ -2,29 +2,31 @@ import BTreeNode from './BTreeNode';
 
 class BTree {
 	constructor(order) {
-		this._root = new BTreeNode(order);
-		this._order = order;
+		this.root = new BTreeNode(order);
+		this._order = order; // Order = Verzweigungsgrad = Anzahl an erlaubten Söhne
 	}
+
 	add(key) {
-		let split = this._root.add(key);
+		let split = this.root.add(key);
 		if (!split) return; // if false = kein split wurde vorgenommen
 
-		this._root = this.newNode(split); // neue Node, wenn es ein Split gab
+		this.root = this.newNode(split); // neue Node, wenn es ein Split gab
 	}
 
 	remove(key) {
-		let removed = this._root.remove(key);
+		let removed = this.root.remove(key);
 
-		if (this._root.keyCount() === 0 && this._root._childs[0]) {
-			this._root = this._root._childs[0];
+		if (this.root._keyCount === 0 && this.root._childs[0]) {
+			// wenn Root gemerged wurde, wird die gemergte Node die neue Root.
+			this.root = this.root._childs[0];
 		}
 
 		return removed;
 	}
 
 	search(key) {
-		let deph = 0;
-		const keyFound = this._root.search(key, deph);
+		let depth = 0;
+		const keyFound = this.root.search(key, depth);
 		return keyFound;
 	}
 
@@ -40,7 +42,7 @@ class BTree {
 	}
 
 	toGraphViz(key) {
-		return this._root.toGraphViz(key);
+		return this.root.toGraphViz(key);
 	}
 }
 
