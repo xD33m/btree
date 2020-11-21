@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import BTree from './../js/BTree1';
+import BTree from './../js/BTree';
 import { everyKeyCanBeDeleted, isNumber, sleep } from '../js/helpers';
 import { Graphviz } from 'graphviz-react';
 import {
