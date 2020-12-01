@@ -84,9 +84,6 @@ const muiTheme = createMuiTheme({
 // [X] Delete fixen
 // [X] "Suchen"-Button -> Suchfunktion
 
-// Featrues:
-// - shows CSV Inserted Key in Input field
-
 let bTree;
 class Home extends Component {
 	constructor(props) {
