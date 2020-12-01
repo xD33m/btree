@@ -53,7 +53,11 @@ class Controls extends Component {
 				lbreak.forEach((res) => {
 					// alles außer Zahlen ignorieren
 					if (!!parseFloat(res)) {
-						csvData = res.split(',').map((el) => parseFloat(el));
+						if (res.includes(',')) {
+							csvData = res.split(',').map((el) => parseFloat(el));
+						} else if (!!parseFloat(res)) {
+							csvData.push(parseFloat(res));
+						}
 					}
 				});
 			};
