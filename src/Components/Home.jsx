@@ -78,12 +78,14 @@ const muiTheme = createMuiTheme({
 // [ ] add "enable Zoom"
 // [ ] hide empty node on reset
 // [ ] insert/delete all button
-// [ ] color complete path
 // [ ] dislay render / algorithm performance
 // [ ] sleep for search
 // --- BAUM ---
 // [X] Delete fixen
 // [X] "Suchen"-Button -> Suchfunktion
+
+// Featrues:
+// - shows CSV Inserted Key in Input field
 
 let bTree;
 class Home extends Component {
