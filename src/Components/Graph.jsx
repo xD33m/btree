@@ -9,15 +9,12 @@ class Graph extends Component {
 
 	componentDidMount = () => {
 		this.props.setLoading(false);
-		console.log('did mount');
 	};
 
 	componentDidUpdate = (prevProps) => {
 		if (prevProps.dot !== this.props.dot) {
-			console.log('props changed');
 		}
 		this.props.setLoading(false);
-		console.log('did update');
 	};
 
 	shouldComponentUpdate(nextProps, nextState) {
