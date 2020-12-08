@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import BTree from './../js/BTree';
-import { everyKeyCanBeDeleted, isNumber, sleep } from '../js/helpers';
-import { Graphviz } from 'graphviz-react';
+import BTree from '../js/BTree';
+import { isNumber, sleep, verifyInput } from '../js/helpers';
 import {
 	Button,
 	unstable_createMuiStrictModeTheme as createMuiTheme,
@@ -19,6 +18,7 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import CloseIcon from '@material-ui/icons/Close';
 import { Alert } from '@material-ui/lab';
+import Graph from './Graph';
 
 const muiTheme = createMuiTheme({
 	overrides: {
@@ -78,7 +78,6 @@ const muiTheme = createMuiTheme({
 // [ ] add "enable Zoom"
 // [ ] hide empty node on reset
 // [ ] insert/delete all button
-// [ ] color complete path
 // [ ] dislay render / algorithm performance
 // [ ] sleep for search
 // --- BAUM ---
@@ -111,6 +110,11 @@ class Home extends Component {
 			snackbarOpen: false,
 			snackbarText: '',
 			snackbarType: 'error',
+
+			showSearchResult: false,
+			searchResult: '',
+
+			loading: true,
 		};
 	}
 
@@ -132,7 +136,7 @@ class Home extends Component {
 
 	draw(key) {
 		let dot = bTree.toGraphViz(key);
-		this.setState({ dirGraph: dot });
+		this.setState({ loading: true }, () => this.setState({ dirGraph: dot }));
 	}
 
 	add = async (keys, insertAll) => {
@@ -168,23 +172,7 @@ class Home extends Component {
 		if (this.isInvalidInput(keys, 'search')) {
 			return;
 		}
-		const isFound = bTree.search(keys[0]);
-		if (isFound.found) {
-			const text = `${keys[0]} was found. Cost: ${isFound.cost}.`;
-			this.setState({
-				snackbarOpen: true,
-				snackbarText: text,
-				snackbarType: 'success',
-			});
-			this.draw(keys[0]);
-		} else {
-			const text = `${keys[0]} was not found. Cost: ${isFound.cost}.`;
-			this.setState({
-				snackbarOpen: true,
-				snackbarText: text,
-				snackbarType: 'error',
-			});
-		}
+		this.setState({ loading: true }, () => this.searchKey(keys));
 	};
 
 	redrawAfterDelay = async (ms) => {
@@ -207,6 +195,26 @@ class Home extends Component {
 		this.setState({ inputField: keyToAdd });
 		await this.redrawAfterDelay(800);
 	};
+
+	searchKey(keys) {
+		let isFound = bTree.search(keys[0]);
+		if (isFound.found) {
+			const text = `${keys[0]} was found. Cost: ${isFound.cost}.`;
+			this.setState({
+				snackbarOpen: true,
+				snackbarText: text,
+				snackbarType: 'success',
+			});
+			this.draw(keys[0]);
+		} else {
+			const text = `${keys[0]} was not found. Cost: ${isFound.cost}.`;
+			this.setState({
+				snackbarOpen: true,
+				snackbarText: text,
+				snackbarType: 'error',
+			});
+		}
+	}
 
 	insertAllKeys(keys) {
 		keys.forEach((key) => {
@@ -276,58 +284,11 @@ class Home extends Component {
 	}
 
 	isInvalidInput = (keys, type) => {
-		let errorText = '';
 		let insertedKeys = this.state.insertedKeys;
-		if (type === 'insert' || type === 'delete') {
-			if (keys.length === 1 && keys[0] === '') {
-				errorText = 'Enter some numbers first';
-				this.displaySnackbar(errorText);
-				return true;
-			} else if (new Set(keys).size !== keys.length) {
-				// input has duplicates
-				errorText = 'The input has duplicates';
-				this.displaySnackbar(errorText);
-				return true;
-			} else if (keys.some(isNaN) || keys.includes('')) {
-				// check for non Integer
-				errorText = 'Only numberic input allowed';
-				this.displaySnackbar(errorText);
-				return true;
-			}
-		}
-		if (type === 'insert') {
-			// eine oder mehrere Zahlen wurden schon eingefügt
-			if (insertedKeys.some((r) => keys.indexOf(r) >= 0)) {
-				errorText = 'A number has already been inserted';
-				this.displaySnackbar(errorText);
-				return true;
-			}
-		} else if (type === 'delete') {
-			if (!everyKeyCanBeDeleted(keys, insertedKeys)) {
-				errorText = 'At least one number is not in the tree';
-				this.displaySnackbar(errorText);
-				return true;
-			}
-		} else if (type === 'previous') {
-			if (insertedKeys.length === 0) {
-				errorText = "You can't go back any further";
-				this.displaySnackbar(errorText);
-				return true;
-			}
-		} else if (type === 'search') {
-			if (keys.length === 1 && keys[0] === '') {
-				errorText = 'Enter a number first';
-				this.displaySnackbar(errorText);
-				return true;
-			} else if (keys.length > 1) {
-				errorText = 'You can only search one number at a time';
-				this.displaySnackbar(errorText);
-				return true;
-			} else if (keys.some(isNaN) || keys.includes('')) {
-				errorText = 'Only numberic input allowed';
-				this.displaySnackbar(errorText);
-				return true;
-			}
+		let errorText = verifyInput(type, keys, insertedKeys);
+		if (errorText) {
+			this.displaySnackbar(errorText);
+			return true;
 		}
 		return false;
 	};
@@ -381,6 +342,10 @@ class Home extends Component {
 		this.setState({ snackbarOpen: false });
 	};
 
+	isLoading = (bool) => {
+		this.setState({ loading: bool });
+	};
+
 	handleChange = (e) => {
 		this.setState({
 			[e.target.name]: e.target.value,
@@ -428,7 +393,6 @@ class Home extends Component {
 								}}
 								visibility="hide"
 							>
-								Inserting:{' '}
 								<span
 									style={
 										this.state.hideKey
@@ -436,6 +400,7 @@ class Home extends Component {
 											: { visibility: 'visible' }
 									}
 								>
+									Inserting:{' '}
 									{
 										this.state.insertedKeys[
 											this.state.insertedKeys.length - 1
@@ -443,18 +408,10 @@ class Home extends Component {
 									}
 								</span>
 							</Typography>
-							<Graphviz
+							<Graph
 								dot={this.state.dirGraph}
-								options={{
-									// zoom: true,
-									// fit: true,
-									width: 1295,
-									height: 495,
-									tweenPaths: false,
-									tweenShapes: false,
-									convertEqualSidedPolygons: false,
-									useWorker: true,
-								}}
+								setLoading={(bool) => this.isLoading(bool)}
+								isLoading={this.state.loading}
 							/>
 						</Grid>
 						<Grid
