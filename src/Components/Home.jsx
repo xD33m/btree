@@ -11,6 +11,7 @@ import {
 	Switch,
 	ThemeProvider,
 	Typography,
+	Checkbox,
 } from '@material-ui/core';
 import Controls from './Controls';
 import RandomNumberDialog from './RandomNumberDialog';
@@ -53,6 +54,12 @@ const muiTheme = createMuiTheme({
 				color: 'white',
 			},
 		},
+
+		MuiCheckbox: {
+			root: {
+				color: 'white',
+			},
+		},
 	},
 });
 
@@ -75,7 +82,7 @@ const muiTheme = createMuiTheme({
 // [X] improve Visulisation performance?
 // [X] handle incorrect input
 // [X] fix bug after reset "child undefined"
-// [ ] add "enable Zoom"
+// [X] add "enable Zoom"
 // [ ] hide empty node on reset
 // [ ] insert/delete all button
 // [ ] dislay render / algorithm performance
@@ -113,6 +120,8 @@ class Home extends Component {
 
 			showSearchResult: false,
 			searchResult: '',
+
+			enableZoom: false,
 
 			loading: true,
 		};
@@ -243,7 +252,7 @@ class Home extends Component {
 			let execForEach = Promise.resolve();
 			keys.forEach((key, index) => {
 				execForEach = execForEach.then(() => {
-					bTree.remove(parseInt(key));
+					bTree.delete(parseInt(key));
 					this.draw();
 					let insertedKeys = this.state.insertedKeys;
 					const keyToDelIndex = insertedKeys.indexOf(parseInt(key));
@@ -255,7 +264,7 @@ class Home extends Component {
 		} else {
 			let insertedKeys = this.state.insertedKeys;
 			keys.forEach((key, index) => {
-				bTree.remove(parseInt(key));
+				bTree.delete(parseInt(key));
 				const keyToDelIndex = insertedKeys.indexOf(parseInt(key));
 				insertedKeys.splice(keyToDelIndex, 1);
 			});
@@ -270,7 +279,7 @@ class Home extends Component {
 		}
 		let insertedKeys = this.state.insertedKeys;
 		const latestInsert = insertedKeys[insertedKeys.length - 1];
-		bTree.remove(parseInt(latestInsert));
+		bTree.delete(parseInt(latestInsert));
 		this.draw();
 		if (keys[0] && keys.length >= 1) {
 			keys.unshift(latestInsert);
@@ -346,10 +355,8 @@ class Home extends Component {
 		this.setState({ loading: bool });
 	};
 
-	handleChange = (e) => {
-		this.setState({
-			[e.target.name]: e.target.value,
-		});
+	handleZoomCheckbox = (event) => {
+		this.setState({ [event.target.name]: event.target.checked, loading: true });
 	};
 
 	render() {
@@ -408,10 +415,28 @@ class Home extends Component {
 									}
 								</span>
 							</Typography>
+							<Typography
+								style={{
+									bottom: 0,
+									right: 0,
+									position: 'absolute',
+									// margin: '10px',
+								}}
+								visibility="hide"
+							>
+								Enable Zoom:
+								<Checkbox
+									name="enableZoom"
+									checked={this.state.enableZoom}
+									onChange={(e) => this.handleZoomCheckbox(e)}
+									inputProps={{ 'aria-label': 'checkbox' }}
+								/>
+							</Typography>
 							<Graph
 								dot={this.state.dirGraph}
 								setLoading={(bool) => this.isLoading(bool)}
 								isLoading={this.state.loading}
+								zoomEnabled={this.state.enableZoom}
 							/>
 						</Grid>
 						<Grid
@@ -464,7 +489,7 @@ class Home extends Component {
 										marks={[
 											{
 												value: 0,
-												label: '0ms',
+												label: '10ms',
 											},
 											{
 												value: 750,
