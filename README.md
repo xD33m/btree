@@ -1,70 +1,72 @@
-# Getting Started with Create React App
+> Das Applikation ist unter [https://btree.lucask.dev](https://btree.lucask.dev) gehostet.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 1. Manuelle Installation / Ausführung
 
-## Available Scripts
+Für das Installieren und Ausführen wird [Git](https://git-scm.com/downloads) und [Yarn](https://classic.yarnpkg.com/en/docs/install/) benötigt
 
-In the project directory, you can run:
+**1.1 Repository Klonen**
 
-### `yarn start`
+`git clone https://github.com/xD33m/btree.git`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+**1.2 Abhängigkeiten installieren**
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+`yarn install`
 
-### `yarn test`
+**1.3** **Applikation ausführen**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+`yarn start`
 
-### `yarn build`
+Anschließend wird eine lokale Entwicklungsumgebung gestartet und die Applikation ist unter [`http://localhost:3000`](http://localhost:3000) einsehbar.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 2. Die Applikation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2.1 Funktionen/Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+-   Einfügen/Löschen von Einzelwerten
+-   Einfügen/Löschen von Werten auf einmal
+-   Suche nach einem Wert mit graphischer Darstellung
+-   Automatisches Einfügen / Löschen von Schlüsseln mit Anzeige der Zwischenergebnisse
+-   Festlegen der Einfüge-/Löschgeschwindigkeit
+-   "Zurück" & "Vorwärts" - Button beim manuellen Einfügen
+-   Ändern der Ordnung
+-   Gernerieren von Schlüssen, wo Unter-, Obergrenze & die Anzahl spezifiziert werden können.
+-   CSV-Import von Schlüsseln
+-   Graphfische Darstellung des B-Baums
+-   Eingabe-Validierung
+-   Zoom-Funktion
 
-### `yarn eject`
+### 2.2 Struktur des Projeks
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```
+📦src
+ ┣ 📂Components ------------------ **React Komponenten**
+ ┃ ┣ 📜Controls.jsx -------------- Buttons, Textfields, Slider etc.
+ ┃ ┣ 📜Graph.jsx ----------------- Die Komponente, die den Graph darstellt
+ ┃ ┣ 📜Home.jsx ------------------ Die Hauptkomponente
+ ┃ ┗ 📜RandomNumberDialog.jsx ---- Die Komponente, die zufällige Schlüssel generiert
+ ┣ 📂js -------------------------- **Der B-Baum Algorithmus & Hilfsfunktionen**
+ ┃ ┣ 📜BTree.js ------------------ Haupt-Klasse des B-Baums
+ ┃ ┣ 📜BTreeNode.js -------------- Klasse eines Knotens
+ ┃ ┗ 📜helpers.js ---------------- Hilfsfunktionen
+ ┣ ...
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 2.3 Verwendete Frameworks / Libraries
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+-   [React](https://reactjs.org/): Eine Library für moderne Front-End entwicklung
+-   [Webpack](https://webpack.js.org/): Ein Modul-Bundler
+-   [Material-UI](https://material-ui.com/): Ein React-Framework für Front-End Komponenten
+-   [Graphviz-react](https://www.npmjs.com/package/graphviz-react): Ein Modul, welches das ursprüngliche [Graphviz-Tool](https://graphviz.org/) für React bereitstellt
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### 2.4 Die Darstellung des B-Baums
 
-## Learn More
+Der in JavaScript implementierte Algorithmus generiert ein selbst gewähltes JSON-Format eines B-Baums. Das JSON-Format wird anschließend manuell in das [dot-Format](https://graphviz.org/doc/info/lang.html) geparsed, welches von Graphviz interpretiert und dargestellt werden kann.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+![https://puu.sh/GX90k/98f5833389.png](https://puu.sh/GX90k/98f5833389.png)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 2.5 Anmerkung zum B-Baum Algorithmus
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+-   Die "Ordnung" wird verschieden interpretiert. Hier wurde sich für die aus der Vorlesung vorgestellte Definition entschieden: Bei einer Ordnung $`m`$, gelten folgende Regeln:
+    -   Jeder Knoten hat mindestens $`\lceil m/2 \rceil`$ Söhne (daraus folgt, dass ein Knoten mindestens $`\lceil m/2-1 \rceil`$ Schlüssel beinhaltet)
+    -   Die maximal erlaubte Anzahl an Kindknoten eines Knotens ist $`m`$
+-   Es wurde auf Hilfs-Libraries wie JQuery verzichtet, um den Overhead zu reduzieren und die Performance zu steigern.
