@@ -2,31 +2,40 @@ import { GraphString, Counter } from './helpers';
 
 class BTreeNode {
 	constructor(order) {
-		this._keyCount = 0;
+		this._order = order;
 		this._keys = Array(order - 1).fill(null); // Array mit default values befüllen
 		this._childs = Array(order).fill(null);
-		this._order = order;
-	}
-
-	isLeaf() {
-		return this._childs[0] === null;
-	}
-
-	isFull() {
-		return this._keyCount === this._order - 1;
+		this._keyCount = 0; // keyCount zählt die eigentlichen Schlüssel eines Knotens (!= null)
 	}
 
 	allowedMinKeys() {
 		return Math.ceil(this._order / 2 - 1);
 	}
 
-	// add ist die Einfügeoperation in den Baum
+	isFull() {
+		return this._keyCount === this._order - 1;
+	}
+
+	isLeaf() {
+		return this._childs[0] === null;
+	}
+
+	// add ist die Einfügeoperation
 	add(key) {
 		if (this.isLeaf()) {
 			if (this.isFull()) {
 				return this.split(key, null);
 			} else {
-				this.insertKey(key);
+				// Schlüssel an der richtigen Position des Knotens einfügen
+				let pos = this._keyCount;
+				let keys = this._keys;
+
+				while (pos > 0 && keys[pos - 1] > key) {
+					keys[pos] = keys[pos - 1];
+					pos--;
+				}
+				keys[pos] = key;
+				this._keyCount += 1;
 				return null;
 			}
 		} else {
@@ -39,61 +48,37 @@ class BTreeNode {
 				// 'this' referenziert hier immer den "parent" und isFull() überprüft, ob ein weiterer Split notwendig ist
 				return this.split(split.key, split.right);
 			} else {
-				this.insertSplit(split);
+				// wenn man splittet, muss unterschieden werden, welcher Kindknoten gesplittet wird &
+				// wie demenstrepchend die Schlüssel angeorndet werden müssen
+				let leftChild = split.left;
+				if (leftChild === this._childs[0]) {
+					for (let i = this._keyCount; i > 0; i--)
+						this._keys[i] = this._keys[i - 1];
+					this._keys[0] = split.key;
+
+					for (let i = this._keyCount + 1; i > 1; i--)
+						this._childs[i] = this._childs[i - 1];
+					this._childs[0] = leftChild;
+					this._childs[1] = split.right;
+				} else {
+					let index = this._keyCount;
+					while (index > 0 && this._childs[index] !== leftChild) {
+						this._keys[index] = this._keys[index - 1];
+						this._childs[index + 1] = this._childs[index];
+						index--;
+					}
+
+					this._keys[index] = split.key;
+					this._childs[index + 1] = split.right;
+				}
+
+				this._keyCount += 1;
 				return null;
 			}
 		}
 	}
 
-	insertKey(key) {
-		// perform insertion sort on keys
-		let pos = this._keyCount;
-		let keys = this._keys;
-
-		while (pos > 0 && keys[pos - 1] > key) {
-			keys[pos] = keys[pos - 1];
-			pos--;
-		}
-
-		keys[pos] = key;
-		this._keyCount += 1;
-	}
-
-	insertSplit(split) {
-		// splited child
-		let leftChild = split.left;
-
-		// insert key with right child poped up from
-		// child node
-		// case A: first child was split
-		if (leftChild === this._childs[0]) {
-			for (let i = this._keyCount; i > 0; i--) this._keys[i] = this._keys[i - 1];
-			this._keys[0] = split.key;
-
-			for (let i = this._keyCount + 1; i > 1; i--)
-				this._childs[i] = this._childs[i - 1];
-			this._childs[0] = leftChild;
-			this._childs[1] = split.right;
-		}
-
-		// case B: [key][split-child] (split child is on the right)
-		else {
-			let index = this._keyCount;
-			while (index > 0 && this._childs[index] !== leftChild) {
-				this._keys[index] = this._keys[index - 1];
-				this._childs[index + 1] = this._childs[index];
-				index--;
-			}
-
-			this._keys[index] = split.key;
-			this._childs[index + 1] = split.right;
-		}
-
-		// rest
-		this._keyCount += 1;
-	}
-
-	// nextChildDestination gibt die Node zurück, wo der Key eingefügt werden soll
+	// nextChildDestination ist eine Helpfer-Function, die immer eine Ebene tiefer geht, um einen Schlüssel einzufügen, zu löschen oder zu suchen
 	nextChildDestination(key) {
 		for (let i = 0; i < this._keyCount; i += 1) {
 			if (key <= this._keys[i]) {
@@ -105,7 +90,7 @@ class BTreeNode {
 	}
 
 	// split teilt eine Node in 2 Nodes + dem mitteren Key und gibt diese dann zurück
-	split(key, keyRightChild) {
+	split(key, rightSplitKey) {
 		let left = this;
 		let right = new BTreeNode(this._order);
 
@@ -124,7 +109,7 @@ class BTreeNode {
 		}
 
 		keys[pos] = key;
-		childs[pos + 1] = keyRightChild;
+		childs[pos + 1] = rightSplitKey;
 
 		// Split-Position wird berechnet
 		let medianIndex = Math.floor(keys.length / 2);
@@ -161,31 +146,6 @@ class BTreeNode {
 		return { left: left, key: medianKey, right: right };
 	}
 
-	remove(key) {
-		if (this.isLeaf()) {
-			return this.removeKey(key);
-		} else {
-			let keyIndex = this._keys.indexOf(key); // check if key current node
-			let child;
-
-			if (keyIndex === -1) {
-				// if not in current node
-				child = this.nextChildDestination(key); // get one node down
-				let result = child.remove(key); // remove key
-
-				this.rebalance(this._childs.indexOf(child));
-				return result;
-			} else {
-				// replace key with max key from left child
-				child = this._childs[keyIndex];
-				this._keys[keyIndex] = child.getMaxKey();
-
-				this.rebalance(keyIndex);
-				return true;
-			}
-		}
-	}
-
 	search(key) {
 		let cost = 1;
 		let found = this._keys.includes(key);
@@ -216,7 +176,7 @@ class BTreeNode {
 			return;
 		}
 
-		// borrow from left child if childindex !== 0 also wenn ein linkes child exisitiert
+		// wenn ein linkes child exisitiert, nimm davon ein key
 		if (childIndex) {
 			let leftChild = this._childs[childIndex - 1];
 			if (leftChild._keyCount > this.allowedMinKeys()) {
@@ -245,7 +205,7 @@ class BTreeNode {
 			}
 		}
 
-		// borrow from right child
+		// sonst von rechts
 		if (childIndex < this._keyCount) {
 			let rightChild = this._childs[childIndex + 1];
 			if (rightChild._keyCount > this.allowedMinKeys()) {
@@ -271,14 +231,11 @@ class BTreeNode {
 			}
 		}
 
-		// merge
 		if (childIndex) {
-			// merge left and current
 			childIndex -= 1;
 		}
 
-		// childIndex will point to the *left* node of two merged nodes
-
+		// childIndex zeigt auf den linken Knoten der 2 germegten Kindknoten
 		let merged = this.mergeChilds(childIndex);
 
 		for (let i = childIndex; i < this._keyCount - 1; i += 1) {
@@ -293,6 +250,32 @@ class BTreeNode {
 		this._childs[childIndex] = merged;
 	}
 
+	// löschen eines Schlüssels
+	delete(key) {
+		if (this.isLeaf()) {
+			return this.removeKey(key);
+		} else {
+			let keyIndex = this._keys.indexOf(key); // check if key current node
+			let child;
+
+			if (keyIndex === -1) {
+				// wemm der Key nicht im derzeitigen Knoten ist
+				child = this.nextChildDestination(key); // eine Kindknoten weiter runter
+				let result = child.delete(key); // von vorne anfangen
+
+				this.rebalance(this._childs.indexOf(child));
+				return result;
+			} else {
+				// Schlüssel wird mit dem größten Schlüssel von links ersetzt
+				child = this._childs[keyIndex];
+				this._keys[keyIndex] = child.getMaxKey();
+
+				this.rebalance(keyIndex);
+				return true;
+			}
+		}
+	}
+
 	mergeChilds(leftIndex) {
 		let key = this._keys[leftIndex];
 
@@ -302,7 +285,7 @@ class BTreeNode {
 		left._keys[left._keyCount] = key;
 		left._keyCount++;
 
-		// copy right keys and childs into left
+		// Schlüssel und Knoten werden in linken Knoten kopiert.
 		for (let i = 0; i < right._keyCount; i++) {
 			left._childs[left._keyCount] = right._childs[i];
 			left._keys[left._keyCount] = right._keys[i];
@@ -314,6 +297,7 @@ class BTreeNode {
 		return left;
 	}
 
+	// gibt den größten Schlüssel im Knoten zurück, wenn es sich um Blattknoten handelt, sonst wird balnciert.
 	getMaxKey() {
 		let key;
 

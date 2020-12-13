@@ -24,7 +24,7 @@ class Graph extends Component {
 		);
 	}
 	render() {
-		const { dot, isLoading } = this.props;
+		const { dot, isLoading, zoomEnabled } = this.props;
 		return (
 			<>
 				{isLoading ? (
@@ -34,7 +34,7 @@ class Graph extends Component {
 						<Graphviz
 							dot={dot}
 							options={{
-								// zoom: true,
+								zoom: zoomEnabled,
 								// fit: true,
 								width: 1295,
 								height: 495,

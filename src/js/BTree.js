@@ -13,8 +13,8 @@ class BTree {
 		this.root = this.newNode(split); // neue Node, wenn es ein Split gab
 	}
 
-	remove(key) {
-		let removed = this.root.remove(key);
+	delete(key) {
+		let removed = this.root.delete(key);
 
 		if (this.root._keyCount === 0 && this.root._childs[0]) {
 			// wenn Root gemerged wurde, wird die gemergte Node die neue Root.
