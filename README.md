@@ -66,7 +66,7 @@ Der in JavaScript implementierte Algorithmus generiert ein selbst gewähltes JSO
 
 ### 2.5 Anmerkung zum B-Baum Algorithmus
 
--   Die "Ordnung" wird verschieden interpretiert. Hier wurde sich für die aus der Vorlesung vorgestellte Definition entschieden: Bei einer Ordnung $`m`$, gelten folgende Regeln:
-    -   Jeder Knoten hat mindestens $`\lceil m/2 \rceil`$ Söhne (daraus folgt, dass ein Knoten mindestens $`\lceil m/2-1 \rceil`$ Schlüssel beinhaltet)
-    -   Die maximal erlaubte Anzahl an Kindknoten eines Knotens ist $`m`$
+-   Die "Ordnung" wird verschieden interpretiert. Hier wurde sich für die aus der Vorlesung vorgestellte Definition entschieden: Bei einer Ordnung `m`, gelten folgende Regeln:
+    -   Jeder Knoten hat mindestens ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2%20\rceil) Söhne (daraus folgt, dass ein Knoten mindestens ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2-1%20\rceil) Schlüssel beinhaltet)
+    -   Die maximal erlaubte Anzahl an Kindknoten eines Knotens ist `m`
 -   Es wurde auf Hilfs-Libraries wie JQuery verzichtet, um den Overhead zu reduzieren und die Performance zu steigern.
