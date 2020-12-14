@@ -1,3 +1,5 @@
+<img src="https://img.shields.io/badge/react%20-%2320232a.svg?&style=flat&logo=react&logoColor=%2361DAFB"/> <img src="https://img.shields.io/badge/firebase%20-%23039BE5.svg?&style=flat&logo=firebase"/> <img src="https://img.shields.io/badge/node.js%20-%2343853D.svg?&style=flat&logo=node.js&logoColor=white"/>
+
 > Das Applikation ist unter [https://btree.lucask.dev](https://btree.lucask.dev) gehostet.
 
 ## 1. Manuelle Installation / Ausführung
