@@ -1,74 +1,80 @@
-<img src="https://img.shields.io/badge/react%20-%2320232a.svg?&style=flat&logo=react&logoColor=%2361DAFB"/> <img src="https://img.shields.io/badge/firebase%20-%23039BE5.svg?&style=flat&logo=firebase"/> <img src="https://img.shields.io/badge/node.js%20-%2343853D.svg?&style=flat&logo=node.js&logoColor=white"/> ![Deployed](https://github.com/xD33m/btree/workflows/Deployed/badge.svg)
+# B-Tree Visualizer
 
-> Das Applikation ist unter [https://btree.lucask.dev](https://btree.lucask.dev) gehostet.
+<img src="https://img.shields.io/badge/react%20-%2320232a.svg?&style=flat&logo=react&logoColor=%2361DAFB"/> <img src="https://img.shields.io/badge/firebase%20-%23039BE5.svg?&style=flat&logo=firebase"/> <img src="https://img.shields.io/badge/node.js%20-%2343853D.svg?&style=flat&logo=node.js&logoColor=white"/>
 
-## 1. Manuelle Installation / Ausführung
+An interactive web app that visualizes insertion, deletion and search in a B-tree, step by step.
 
-Für das Installieren und Ausführen wird [Git](https://git-scm.com/downloads) und [Yarn](https://classic.yarnpkg.com/en/docs/install/) benötigt
+**Live demo: [btree.lucask.dev](https://btree.lucask.dev)**
 
-**1.1 Repository Klonen**
+## Context
 
-`git clone https://github.com/xD33m/btree.git`
+A university project from November and December 2020, written for a data structures course. The B-tree algorithm is implemented from scratch in plain JavaScript; the order definition follows the one taught in the lecture (see [Notes on the algorithm](#notes-on-the-algorithm)).
 
-**1.2 Abhängigkeiten installieren**
+![B-tree of order 3 with 17 keys, rendered by the app](docs/screenshot.png)
 
-`yarn install`
+## Features
 
-**1.3** **Applikation ausführen**
+- Insert and delete single keys, or many comma-separated keys at once
+- Search for a key; the found key is highlighted in the graph
+- Automatic insert/delete that shows every intermediate tree
+- Adjustable insert/delete speed
+- Manual mode with "Back" and "Forward" buttons to step through an insertion
+- Changeable tree order
+- Random key generation with a configurable minimum, maximum and number of keys
+- CSV import of keys
+- Graphical rendering of the tree with Graphviz
+- Input validation
+- Optional zoom
 
-`yarn start`
+## Tech stack
 
-Anschließend wird eine lokale Entwicklungsumgebung gestartet und die Applikation ist unter [`http://localhost:3000`](http://localhost:3000) einsehbar.
+- [React](https://reactjs.org/) 17, bootstrapped with Create React App (webpack)
+- [Material-UI](https://material-ui.com/) v4 for the controls
+- [graphviz-react](https://www.npmjs.com/package/graphviz-react), which brings [Graphviz](https://graphviz.org/) rendering to React
+- Firebase Hosting, with GitHub Actions workflows for deploys on push to `main` and preview channels on pull requests
 
-## 2. Die Applikation
+## Running locally
 
-### 2.1 Funktionen/Features
+Requires [Git](https://git-scm.com/downloads), Node.js and [Yarn](https://classic.yarnpkg.com/en/docs/install/).
 
--   Einfügen/Löschen von Einzelwerten
--   Einfügen/Löschen von Werten auf einmal
--   Suche nach einem Wert mit graphischer Darstellung
--   Automatisches Einfügen / Löschen von Schlüsseln mit Anzeige der Zwischenergebnisse
--   Festlegen der Einfüge-/Löschgeschwindigkeit
--   "Zurück" & "Vorwärts" - Button beim manuellen Einfügen
--   Ändern der Ordnung
--   Gernerieren von Schlüssen, wo Unter-, Obergrenze & die Anzahl spezifiziert werden können.
--   CSV-Import von Schlüsseln
--   Graphfische Darstellung des B-Baums
--   Eingabe-Validierung
--   Zoom-Funktion
+```bash
+git clone https://github.com/xD33m/btree.git
+cd btree
+yarn install
+yarn start
+```
 
-### 2.2 Struktur des Projeks
+This starts a development server; open [http://localhost:3000](http://localhost:3000).
+
+`yarn build` creates a production build in `build/`. Note that the project uses `react-scripts` 4 from 2020: on Node.js 17 or newer you may need `NODE_OPTIONS=--openssl-legacy-provider`, and the `build` script sets `GENERATE_SOURCEMAP=false` with POSIX shell syntax.
+
+## Architecture
 
 ```
-📦src
- ┣ 📂Components ------------------ **React Komponenten**
- ┃ ┣ 📜Controls.jsx -------------- Buttons, Textfields, Slider etc.
- ┃ ┣ 📜Graph.jsx ----------------- Die Komponente, die den Graph darstellt
- ┃ ┣ 📜Home.jsx ------------------ Die Hauptkomponente
- ┃ ┗ 📜RandomNumberDialog.jsx ---- Die Komponente, die zufällige Schlüssel generiert
- ┣ 📂js -------------------------- **Der B-Baum Algorithmus & Hilfsfunktionen**
- ┃ ┣ 📜BTree.js ------------------ Haupt-Klasse des B-Baums
- ┃ ┣ 📜BTreeNode.js -------------- Klasse eines Knotens
- ┃ ┗ 📜helpers.js ---------------- Hilfsfunktionen
+src
+ ┣ Components
+ ┃ ┣ Controls.jsx ------------ Buttons, text fields, sliders
+ ┃ ┣ Graph.jsx --------------- Renders the tree graph
+ ┃ ┣ Home.jsx ---------------- Main component and app state
+ ┃ ┗ RandomNumberDialog.jsx -- Dialog for generating random keys
+ ┣ js -------------------------- B-tree algorithm and helpers
+ ┃ ┣ BTree.js ---------------- Main B-tree class
+ ┃ ┣ BTreeNode.js ------------ Node class (insert, split, delete, rebalance, merge, search)
+ ┃ ┗ helpers.js -------------- Helper functions
  ┣ ...
 ```
 
-### 2.3 Verwendete Frameworks / Libraries
+### How the tree is drawn
 
--   [React](https://reactjs.org/): Eine Library für moderne Front-End entwicklung
--   [Webpack](https://webpack.js.org/): Ein Modul-Bundler
--   [Material-UI](https://material-ui.com/): Ein React-Framework für Front-End Komponenten
--   [Graphviz-react](https://www.npmjs.com/package/graphviz-react): Ein Modul, welches das ursprüngliche [Graphviz-Tool](https://graphviz.org/) für React bereitstellt
+The algorithm produces the tree in a custom JSON structure. That structure is converted by hand into the Graphviz [DOT language](https://graphviz.org/doc/info/lang.html), which Graphviz then lays out and renders.
 
-### 2.4 Die Darstellung des B-Baums
+## Notes on the algorithm
 
-Der in JavaScript implementierte Algorithmus generiert ein selbst gewähltes JSON-Format eines B-Baums. Das JSON-Format wird anschließend manuell in das [dot-Format](https://graphviz.org/doc/info/lang.html) geparsed, welches von Graphviz interpretiert und dargestellt werden kann.
+- "Order" is defined differently in different textbooks. This project uses the definition from the lecture: for order `m`,
+  - every node has at least ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2%20\rceil) children (so a node holds at least ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2-1%20\rceil) keys), and
+  - a node has at most `m` children.
+- Helper libraries such as jQuery were deliberately left out to keep the bundle small.
 
-![https://puu.sh/GX90k/98f5833389.png](https://puu.sh/GX90k/98f5833389.png)
+## Status
 
-### 2.5 Anmerkung zum B-Baum Algorithmus
-
--   Die "Ordnung" wird verschieden interpretiert. Hier wurde sich für die aus der Vorlesung vorgestellte Definition entschieden: Bei einer Ordnung `m`, gelten folgende Regeln:
-    -   Jeder Knoten hat mindestens ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2%20\rceil) Söhne (daraus folgt, dass ein Knoten mindestens ![](https://latex.codecogs.com/gif.latex?\lceil%20m/2-1%20\rceil) Schlüssel beinhaltet)
-    -   Die maximal erlaubte Anzahl an Kindknoten eines Knotens ist `m`
--   Es wurde auf Hilfs-Libraries wie JQuery verzichtet, um den Overhead zu reduzieren und die Performance zu steigern.
+Finished in December 2020 and archived. The live demo is still online.
